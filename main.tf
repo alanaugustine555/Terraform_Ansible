@@ -83,7 +83,6 @@ resource "aws_security_group" "allow_web" {
 
 
 resource "aws_instance" "demo" {
-  count           = 3
   ami             = "ami-0cff7528ff583bf9a"
   instance_type   = "t2.micro"
   key_name        = "demokey"
@@ -104,12 +103,12 @@ resource "aws_instance" "demo" {
       type        = "ssh"
       user        = "ec2-user"
       private_key = file("/home/jiso/terraform/demokey.pem")
-      host        = self.public_ip
+      host        = aws_instance.demo.public_ip
     }
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -u root -i ${self.public_ip}, --private-key ${local.private_key_path} jjp.yaml"
+    command = "ansible-playbook -u root -i ${aws_instance.demo.public_ip}, --private-key ${local.private_key_path} jjp.yaml"
 
   }
 
