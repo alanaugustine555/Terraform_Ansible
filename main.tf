@@ -88,7 +88,7 @@ resource "aws_instance" "demo" {
   key_name        = "demokey"
   security_groups = ["${aws_security_group.allow_web.name}"]
   tags = {
-    "Name" = "demoo-${count.index}"
+    "Name" = "demoo"
   }
 
   root_block_device {
