@@ -1,0 +1,94 @@
+---
+- hosts: all
+  remote_user: ec2-user
+  become: yes
+  tasks:
+    - name: Check for Python
+      raw: test -e /usr/bin/python
+      changed_when: false
+      failed_when: false
+      register: check_python
+
+
+    - name: Install Python
+      raw: yum -y install python3
+      when: check_python.rc != 0
+
+    
+
+    - name: yum update
+      yum:
+       name: '*'
+       state: latest
+
+
+    - name: symlink /usr/bin/python -> /usr/bin/python3
+      raw: |
+        if [ -f /usr/bin/python3 ] && [ ! -f /usr/bin/python ]; then
+          ln --symbolic /usr/bin/python3 /usr/bin/python; 
+        fi
+      # become: true  
+
+     
+    - name: yum update
+      yum:
+       name: '*'
+       state: latest
+
+    - name: Install java
+      # become: yes
+      raw: yum -y install java
+
+
+    - name: Ensure Jenkins repository is added
+      # become: yes
+      yum_repository:
+        name: jenkins-ci
+        description: jenkins-ci package repository
+        baseurl: http://pkg.jenkins.io/redhat
+        gpgkey: https://pkg.jenkins.io/redhat/jenkins.io.key
+        gpgcheck: yes
+
+
+    - name: Ensure gpp key is imported
+      # become: yes
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat/jenkins.io.key
+   
+
+    - name: Ensure Jenkins and java-devel package installed
+      # become: yes
+      yum:
+        name: '{{ packages }}'
+        state: present
+        update_cache: true
+      vars:
+        packages:
+          - jenkins
+          - java-devel  
+
+
+    - name: jenkins install
+      # become: yes
+      ansible.builtin.service:
+       name: jenkins
+       state: started
+
+
+    - name: daemon-reload to pick up config changes
+      # become: yes
+      ansible.builtin.systemd:
+       daemon_reload: yes   
+
+   
+
+    
+    
+
+    
+    
+      
+
+  
+   
